@@ -21,5 +21,9 @@ func main() {
 		}
 	})
 
+	r.Post("/world", func(w http.ResponseWriter, req *http.Request) {
+		fmt.Fprintf(w, "URL.Method=%q\n", req.Method)
+	})
+
 	r.Run(":9999")
 }
