@@ -1,9 +1,9 @@
-package main
+// package main
 
-import "testing"
+// import "testing"
 
-func TestAdd(t *testing.T) {
-	if ans := add(1, 2); ans != 3 {
-		t.Error("add(1, 2) should be equal to 3")
-	}
-}
+// func TestAdd(t *testing.T) {
+// 	if ans := add(1, 2); ans != 3 {
+// 		t.Error("add(1, 2) should be equal to 3")
+// 	}
+// }
