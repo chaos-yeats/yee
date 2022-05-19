@@ -37,7 +37,6 @@ func TestGetRouter(t *testing.T) {
 		t.Fatal("should match /hello/:name")
 	}
 
-	fmt.Println("xxx" + ps["name"])
 	if ps["name"] != "geektutu" {
 		t.Fatal("name should be equal to 'geektutu'")
 	}

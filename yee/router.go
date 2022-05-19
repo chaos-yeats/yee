@@ -71,10 +71,10 @@ func (r *router) getRouter(method string, path string) (*node, map[string]string
 			// 例如/p/go/doc匹配到/p/:lang/doc，解析结果为：{lang: "go"}，
 			// /static/css/geektutu.css匹配到/static/*filepath，解析结果为{filepath: "css/geektutu.css"}
 			if part[0] == ':' {
-				params[part[:1]] = searchParts[index]
+				params[part[1:]] = searchParts[index]
 			}
 			if part[0] == '*' && len(part) > 1 {
-				params[part[:1]] = strings.Join(searchParts[index:], "/")
+				params[part[1:]] = strings.Join(searchParts[index:], "/")
 				break
 			}
 		}
