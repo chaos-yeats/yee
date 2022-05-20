@@ -15,6 +15,14 @@ func main() {
 		c.String(http.StatusOK, "hello %s, you're at %s\n", c.Query("name"), c.Path)
 	})
 
+	r.Get("/hello/:name", func(c *yee.Context) {
+		c.String(http.StatusOK, "hello %s, you're at %s\n", c.Param("name"), c.Path)
+	})
+
+	r.Get("/assets/*filepath", func(c *yee.Context) {
+		c.JSON(http.StatusOK, yee.H{"filepath": c.Param("filepath")})
+	})
+
 	// curl 模拟表单：https://blog.csdn.net/freedomwjx/article/details/43278157
 	// curl -XPOST "http://127.0.0.1:9999/login" -d "username=hello&password=world"
 	r.Post("/login", func(c *yee.Context) {
