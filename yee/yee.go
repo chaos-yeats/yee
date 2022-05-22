@@ -2,42 +2,78 @@ package yee
 
 import (
 	"net/http"
+	"strings"
 )
+
+type RouterGroup struct {
+	prefix      string
+	middlewares []HandlerFunc
+	engine      *Engine
+}
 
 // 请求处理函数
 // todo:为什么request用指针而response用值，有啥讲究？
 type HandlerFunc func(*Context)
 
 type Engine struct {
+	*RouterGroup
 	router *router
+	groups []*RouterGroup
 }
 
 func New() *Engine {
-	return &Engine{router: newRouter()}
+	engine := &Engine{router: newRouter()}
+	engine.RouterGroup = &RouterGroup{engine: engine} // 神奇的操作
+	engine.groups = []*RouterGroup{engine.RouterGroup}
+	return engine
+}
+
+func (group *RouterGroup) Group(prefix string) *RouterGroup {
+	engine := group.engine
+	newGoup := &RouterGroup{
+		prefix: group.prefix + prefix,
+		engine: engine,
+	}
+	engine.groups = append(engine.groups, newGoup)
+
+	return newGoup
+}
+
+func (group *RouterGroup) Use(middlewares ...HandlerFunc) {
+	group.middlewares = append(group.middlewares, middlewares...)
 }
 
 // 添加路由
-func (engine *Engine) addRouter(method string, pattern string, handler HandlerFunc) {
-	engine.router.addRouter(method, pattern, handler)
+func (group *RouterGroup) addRouter(method string, comp string, handler HandlerFunc) {
+	pattern := group.prefix + comp
+	group.engine.router.addRouter(method, pattern, handler)
 }
 
 // GET请求
-func (engine *Engine) Get(pattern string, handler HandlerFunc) {
-	engine.addRouter("GET", pattern, handler)
+func (group *RouterGroup) Get(pattern string, handler HandlerFunc) {
+	group.addRouter("GET", pattern, handler)
 }
 
 // POST请求
-func (engine *Engine) Post(pattern string, handler HandlerFunc) {
-	engine.addRouter("POST", pattern, handler)
+func (group *RouterGroup) Post(pattern string, handler HandlerFunc) {
+	group.addRouter("POST", pattern, handler)
 }
 
-func (engine *Engine) Run(addr string) (err error) {
+func (group *RouterGroup) Run(addr string) (err error) {
 	//engine需要实现了SeverHTTP方法
-	return http.ListenAndServe(addr, engine)
+	return http.ListenAndServe(addr, group.engine)
 }
 
 // 只要实现了ServerHTTP方法就将对象传递给http.ListenAndServe()函数
 func (engine *Engine) ServeHTTP(w http.ResponseWriter, req *http.Request) {
+	var middlewares []HandlerFunc
+	for _, group := range engine.groups {
+		if strings.HasPrefix(req.URL.Path, group.prefix) {
+			middlewares = append(middlewares, group.middlewares...)
+		}
+	}
+
 	c := newContext(w, req)
+	c.handlers = middlewares
 	engine.router.handler(c)
 }
