@@ -3,6 +3,7 @@ package yee
 import (
 	"log"
 	"net/http"
+	"path"
 	"strings"
 )
 
@@ -98,4 +99,27 @@ func (r *router) handler(c *Context) {
 	}
 
 	c.Next()
+}
+
+func (group *RouterGroup) createStaticHandler(relativePath string, fs http.FileSystem) HandlerFunc {
+	absolutePath := path.Join(group.prefix, relativePath)
+	log.Printf("Absolutepath:%s", absolutePath)
+	fileServer := http.StripPrefix(absolutePath, http.FileServer(fs))
+	return func(c *Context) {
+		file := c.Param("filepath")
+		log.Printf("FSpath:%s", file)
+		if _, err := fs.Open(file); err != nil {
+			c.Status(http.StatusNotFound)
+			return
+		}
+
+		fileServer.ServeHTTP(c.Writer, c.Req)
+	}
+}
+
+// r.Static("/assets", "/usr/geektutu/blog/static")
+func (group *RouterGroup) Static(relativePath string, root string) {
+	handler := group.createStaticHandler(relativePath, http.Dir(root))
+	urlPattern := path.Join(relativePath, "/*filepath")
+	group.Get(urlPattern, handler)
 }

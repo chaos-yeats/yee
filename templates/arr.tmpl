@@ -1,0 +1,13 @@
+<!-- day6-template/templates/css.tmpl -->
+<html>
+    <link rel="stylesheet" href="/assets/css/yee.css">
+    <p>Static html rendering Arr</p>
+    title: {{.title}}
+    <p>
+        {{range .stuArr}}
+            {{with .}}
+                <li>student: {{.Name}} &nbsp;&nbsp; age: {{.Age}}</li>
+            {{end}}
+        {{end}}
+    </p>
+</html>
